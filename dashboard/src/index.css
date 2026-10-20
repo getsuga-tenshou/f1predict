@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/*
+ * Tokens: the dataviz reference palette (chart chrome, ink, series-1 blue, diverging blue/red,
+ * status). Light values on :root; dark values for the OS setting (unless the viewer picked
+ * light) and for an explicit data-theme="dark".
+ *
+ * Contrast notes (WCAG, against page / surface):
+ *  - --ink-3 #898781 is 3.4-3.5:1 on the light page, so in light mode it is used for
+ *    graphics only (reference lines, baseline ticks). Muted *text* uses --ink-muted, which is
+ *    the secondary ink in light (7.5:1) and #898781 in dark (4.9-5.4:1).
+ *  - Form-control borders use --ink-3 (3.5:1 light, 4.9:1 dark) so controls clear the 3:1
+ *    non-text minimum; --axis stays the chart baseline / axis colour.
+ */
+/* Layer scale: the only z-index values in the app. */
+:root {
+  --z-sticky: 10;
+  --z-popover: 30;
+  --z-tooltip: 40;
+  --z-drawer: 50;
+}
+
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --ink-muted: #52514e;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --hair: rgba(11, 11, 11, 0.1);
+  --accent: #2a78d6;
+  --deemph: #c3c2b7;
+  --pos: #2a78d6;
+  --neg: #e34948;
+  --good: #0ca30c;
+  --critical: #d03b3b;
+  --success-text: #006300;
+  --tint: color-mix(in srgb, var(--ink-1) 4%, var(--surface));
+  --shadow-color: color-mix(in srgb, var(--ink-1) 16%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #f0efec;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --ink-muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --hair: rgba(255, 255, 255, 0.1);
+    --accent: #3987e5;
+    --deemph: #52514e;
+    --pos: #3987e5;
+    --neg: #e66767;
+    --good: #0ca30c;
+    --critical: #d03b3b;
+    --success-text: #0ca30c;
+    --tint: color-mix(in srgb, var(--ink-1) 5%, var(--surface));
+    --shadow-color: color-mix(in srgb, var(--page) 80%, transparent);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #f0efec;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --ink-muted: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --hair: rgba(255, 255, 255, 0.1);
+  --accent: #3987e5;
+  --deemph: #52514e;
+  --pos: #3987e5;
+  --neg: #e66767;
+  --good: #0ca30c;
+  --critical: #d03b3b;
+  --success-text: #0ca30c;
+  --tint: color-mix(in srgb, var(--ink-1) 5%, var(--surface));
+  --shadow-color: color-mix(in srgb, var(--page) 80%, transparent);
+}
+
+@theme {
+  --color-*: initial;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius-control: 6px;
+  --radius-panel: 10px;
+  --radius-badge: 4px;
+  --animate-indeterminate: indeterminate 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+  @keyframes indeterminate {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-muted: var(--ink-muted);
+  --color-grid: var(--grid);
+  --color-axis: var(--axis);
+  --color-hair: var(--hair);
+  --color-accent: var(--accent);
+  --color-deemph: var(--deemph);
+  --color-pos: var(--pos);
+  --color-neg: var(--neg);
+  --color-good: var(--good);
+  --color-critical: var(--critical);
+  --color-success: var(--success-text);
+  --color-tint: var(--tint);
+  --shadow-float: 0 16px 40px -16px var(--shadow-color), 0 2px 8px -2px var(--shadow-color);
+}
+
+/*
+ * Muted ink (#898781) is 4.3:1 on the dark tint, below AA, so a tinted row (hovered, expanded,
+ * highlighted) lifts its muted text to secondary ink. No visual change in light mode, where
+ * muted ink already is the secondary ink.
+ */
+@utility tint-lift {
+  --ink-muted: var(--ink-2);
+}
+
+@layer base {
+  html {
+    background: var(--page);
+    -webkit-text-size-adjust: 100%;
+    /* The drawer locks body scroll; keep the scrollbar's space so the page does not shift. */
+    scrollbar-gutter: stable;
+  }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink-1);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 24%, transparent);
+  }
+  button,
+  select,
+  input {
+    font: inherit;
+    color: inherit;
+  }
+  button:not(:disabled),
+  select:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+  code,
+  kbd {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer components {
+  /* Native select styled to the control rule (6px, ink-3 border); the caret icon is overlaid by <Select>. */
+  .control-select {
+    appearance: none;
+    background-color: var(--surface);
+    border: 1px solid var(--ink-3);
+    border-radius: 6px;
+    padding: 0 30px 0 10px;
+    height: 34px;
+    min-width: 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
+  .control-select:disabled {
+    opacity: 0.55;
+  }
+  .control-input {
+    background: var(--surface);
+    border: 1px solid var(--ink-3);
+    border-radius: 6px;
+    height: 34px;
+    padding: 0 10px;
+    min-width: 0;
+  }
+  .control-input::placeholder {
+    color: var(--ink-muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

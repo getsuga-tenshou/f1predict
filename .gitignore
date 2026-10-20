@@ -1,0 +1,25 @@
+# Allowlist: only the model + dashboard code is tracked. Everything else at the top level
+# (data/, reports/, predictions/, experiments/, docs/, tests/, DESIGN.md, .venv/, ...) stays local.
+/*
+!/.gitignore
+!/README.md
+!/pyproject.toml
+!/src/
+!/dashboard/
+!/configs/
+/configs/*
+!/configs/final.json
+
+# Generated inside the tracked folders
+__pycache__/
+*.pyc
+*.egg-info/
+dashboard/node_modules/
+dashboard/dist/
+# Built frontend: `npm run build` in dashboard/ writes it
+src/f1predict/dashboard/static/
+# Never publish local secrets
+.env
+.env.*
+*.pem
+*.key

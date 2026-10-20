@@ -1,0 +1,201 @@
+{
+  "data_version": "v2026.17.0",
+  "state": {
+    "k_driver": 0.08,
+    "k_team": 0.2,
+    "team_carry": 0.75,
+    "team_carry_minor": 0.55,
+    "team_carry_major": 0.35,
+    "driver_carry": 0.95,
+    "new_team_rating": -0.6,
+    "new_driver_rating": -0.3,
+    "sprint_k_scale": 0.5,
+    "pace_obs_var": 0.12,
+    "pace_proc_var": 0.002,
+    "pace_proc_var_early": 0.03,
+    "early_rounds": 4,
+    "pace_rho": 0.85,
+    "pace_rho_minor": 0.6,
+    "pace_rho_major": 0.4,
+    "pace_season_var": 0.05,
+    "pace_season_var_minor": 0.15,
+    "pace_season_var_major": 0.4,
+    "new_team_offset": 0.3,
+    "new_team_var": 1.0,
+    "sq_obs_var_scale": 1.5,
+    "offset_obs_var": 0.05,
+    "offset_proc_var": 0.001,
+    "rookie_offset": 0.1,
+    "rookie_var": 0.05,
+    "switch_shrink": 0.5,
+    "switch_var": 0.02,
+    "form_halflives": [
+      3,
+      10
+    ],
+    "form_season_carry": 0.5
+  },
+  "modes": {
+    "pre_weekend": {
+      "members": {
+        "condlogit": {
+          "family": "condlogit",
+          "kind": "core",
+          "l2": 10.0
+        },
+        "gbm": {
+          "family": "gbm",
+          "n_estimators": 200,
+          "num_leaves": 4,
+          "min_data_in_leaf": 100,
+          "depth": 6
+        },
+        "hybrid": {
+          "family": "hybrid",
+          "base": {
+            "kind": "core",
+            "l2": 10.0
+          },
+          "n_estimators": 50,
+          "num_leaves": 4,
+          "min_data_in_leaf": 200,
+          "learning_rate": 0.03
+        }
+      },
+      "baselines": {
+        "elo": {
+          "family": "softmax",
+          "feature": "rating"
+        },
+        "pace": {
+          "family": "softmax",
+          "feature": "d_pace",
+          "sign": -1.0
+        },
+        "uniform": {
+          "family": "uniform"
+        }
+      },
+      "stack": {
+        "halflife": 60.0,
+        "members": [
+          "condlogit"
+        ],
+        "primary": "condlogit",
+        "prior_races": 1000000000.0,
+        "max_eps": 0.0
+      },
+      "reference_baseline": "pace"
+    },
+    "pre_quali": {
+      "members": {
+        "condlogit": {
+          "family": "condlogit",
+          "kind": "core",
+          "l2": 30.0
+        },
+        "gbm": {
+          "family": "gbm",
+          "n_estimators": 200,
+          "num_leaves": 4,
+          "min_data_in_leaf": 100,
+          "depth": 6
+        },
+        "hybrid": {
+          "family": "hybrid",
+          "base": {
+            "kind": "core",
+            "l2": 30.0
+          },
+          "n_estimators": 50,
+          "num_leaves": 4,
+          "min_data_in_leaf": 200,
+          "learning_rate": 0.03
+        }
+      },
+      "baselines": {
+        "elo": {
+          "family": "softmax",
+          "feature": "rating"
+        },
+        "pace": {
+          "family": "softmax",
+          "feature": "d_pace",
+          "sign": -1.0
+        },
+        "practice": {
+          "family": "softmax",
+          "feature": "car_fp_gap_mean",
+          "sign": -1.0
+        },
+        "uniform": {
+          "family": "uniform"
+        }
+      },
+      "stack": {
+        "halflife": 60.0,
+        "members": [
+          "condlogit"
+        ],
+        "primary": "condlogit",
+        "prior_races": 1000000000.0,
+        "max_eps": 0.0
+      },
+      "reference_baseline": "pace"
+    },
+    "pre_race": {
+      "members": {
+        "condlogit": {
+          "family": "condlogit",
+          "kind": "full",
+          "l2": 100.0
+        },
+        "gbm": {
+          "family": "gbm",
+          "n_estimators": 200,
+          "num_leaves": 4,
+          "min_data_in_leaf": 100,
+          "depth": 3
+        },
+        "hybrid": {
+          "family": "hybrid",
+          "base": {
+            "kind": "full",
+            "l2": 100.0
+          },
+          "n_estimators": 50,
+          "num_leaves": 4,
+          "min_data_in_leaf": 200,
+          "learning_rate": 0.03
+        }
+      },
+      "baselines": {
+        "grid": {
+          "family": "grid_prior"
+        },
+        "elo": {
+          "family": "softmax",
+          "feature": "rating"
+        },
+        "pace": {
+          "family": "softmax",
+          "feature": "d_pace",
+          "sign": -1.0
+        },
+        "uniform": {
+          "family": "uniform"
+        }
+      },
+      "stack": {
+        "halflife": 60.0,
+        "members": [
+          "condlogit"
+        ],
+        "primary": "condlogit",
+        "prior_races": 1000000000.0,
+        "max_eps": 0.0
+      },
+      "reference_baseline": "grid"
+    }
+  }
+}
