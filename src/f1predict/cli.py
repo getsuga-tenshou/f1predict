@@ -100,7 +100,7 @@ def cmd_dashboard(args) -> None:
 
 def _print_race(df: pd.DataFrame, top: int = 10) -> None:
     r = df.iloc[0]
-    print(f"{int(r['year'])} round {int(r['round'])} — {r['circuit_id']} ({pd.Timestamp(r['date']).date()}), horizon {int(r['h'])}")
+    print(f"{int(r['year'])} round {int(r['round'])}: {r['circuit_id']} ({pd.Timestamp(r['date']).date()}), horizon {int(r['h'])}")
     for i, (_, row) in enumerate(df.sort_values("p", ascending=False).head(top).iterrows()):
         bar = "█" * int(round(row["p"] * 40))
         print(f"  {row['driver_id']:<22s} {row['team_id']:<14s} {row['p']:6.1%}  {bar}")

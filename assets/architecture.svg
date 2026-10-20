@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1104" viewBox="0 0 1000 1104" role="img" aria-labelledby="t d">
+  <title id="t">How f1predict works</title>
+  <desc id="d">Architecture of f1predict. F1DB and OpenF1 feed canonical tables. A chronological state replay turns them into one dataset per prediction moment. Models are refit before every race under the frozen configs/final.json. A walk-forward backtest feeds the evaluation report and the forecast's second stage, and the CLI and the dashboard serve the forecast.</desc>
+  <defs>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; fill: #374151; font-size: 13px; }
+      .title { font-size: 22px; font-weight: 700; fill: #111827; }
+      .sub { font-size: 13.5px; fill: #6B7280; }
+      .band-label { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; }
+      .h { font-size: 15.5px; font-weight: 650; fill: #111827; }
+      .mono, .hmono { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .mono { font-size: 12px; fill: #6B7280; }
+      .hmono { font-size: 14.5px; font-weight: 700; fill: #111827; }
+      .chip-mode { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 12.5px; fill: #065F46; }
+      .chip { font-size: 12.5px; fill: #374151; }
+      .chip-sel { font-size: 12.5px; font-weight: 700; fill: #B30500; }
+      .edge { font-size: 11px; fill: #4B5563; stroke: #FFFFFF; stroke-width: 4px; paint-order: stroke; stroke-linejoin: round; }
+      .foot { font-size: 12px; fill: #6B7280; }
+      .box { fill: #FFFFFF; stroke: #D1D5DB; stroke-width: 1; }
+      .arrow { fill: none; stroke: #6B7280; stroke-width: 1.6; }
+    </style>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7280"/>
+    </marker>
+  </defs>
+
+  <!-- canvas -->
+  <rect x="0.5" y="0.5" width="999" height="1103" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
+  <rect x="28" y="30" width="6" height="44" rx="3" fill="#E10600"/>
+  <text x="46" y="52" class="title">How f1predict works</text>
+  <text x="46" y="72" class="sub">From every Grand Prix since 1950 to a win probability for every driver</text>
+
+  <!-- 1 DATA -->
+  <rect x="24" y="92" width="952" height="200" rx="14" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="42" y="116" class="band-label" fill="#1D4ED8" style="fill:#1D4ED8">1 · DATA</text>
+
+  <rect x="48" y="128" width="310" height="78" rx="10" class="box"/>
+  <text x="66" y="154" class="h">F1DB</text>
+  <text x="66" y="174">every championship race since 1950</text>
+  <text x="66" y="194">pinned release, SHA-256 checked</text>
+
+  <rect x="48" y="218" width="310" height="60" rx="10" class="box"/>
+  <text x="66" y="244" class="h">OpenF1 API</text>
+  <text x="66" y="264">this weekend's sessions, as they finish</text>
+
+  <rect x="600" y="128" width="352" height="150" rx="10" class="box"/>
+  <text x="618" y="154" class="h">Canonical tables</text>
+  <text x="618" y="176">races, results, qualifying, grid,</text>
+  <text x="618" y="196">practice and sprint, in one schema</text>
+  <text x="618" y="220" class="mono" style="fill:#4B5563">data/processed/&lt;version&gt;/*.parquet</text>
+  <text x="618" y="264" class="mono">f1predict/data/</text>
+
+  <path d="M358,167 H600" class="arrow" marker-end="url(#ah)"/>
+  <text x="479" y="160" class="edge" text-anchor="middle">download, verify</text>
+  <path d="M358,248 H600" class="arrow" marker-end="url(#ah)"/>
+  <text x="479" y="241" class="edge" text-anchor="middle">live adapter</text>
+
+  <!-- 2 FEATURES -->
+  <rect x="24" y="308" width="952" height="186" rx="14" fill="#ECFDF5" stroke="#A7F3D0"/>
+  <text x="42" y="332" class="band-label" style="fill:#047857">2 · FEATURES</text>
+
+  <path d="M776,278 V300 H263 V344" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="48" y="344" width="430" height="136" rx="10" class="box"/>
+  <text x="66" y="370" class="h">Chronological state replay</text>
+  <text x="66" y="392">every race in order: snapshot, then update</text>
+  <text x="66" y="412">Kalman pace filter, race Elo, form, power unit,</text>
+  <text x="66" y="432">reliability, championship standings</text>
+  <text x="66" y="468" class="mono">f1predict/features/state.py</text>
+
+  <path d="M478,412 H522" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="522" y="344" width="430" height="136" rx="10" class="box"/>
+  <text x="540" y="370" class="h">One dataset per prediction moment</text>
+  <rect x="540" y="382" width="104" height="24" rx="12" fill="#ECFDF5" stroke="#6EE7B7"/>
+  <text x="592" y="399" class="chip-mode" text-anchor="middle">pre_weekend</text>
+  <rect x="654" y="382" width="90" height="24" rx="12" fill="#ECFDF5" stroke="#6EE7B7"/>
+  <text x="699" y="399" class="chip-mode" text-anchor="middle">pre_quali</text>
+  <rect x="754" y="382" width="82" height="24" rx="12" fill="#ECFDF5" stroke="#6EE7B7"/>
+  <text x="795" y="399" class="chip-mode" text-anchor="middle">pre_race</text>
+  <text x="540" y="428">each moment adds what is known by then:</text>
+  <text x="540" y="447">practice, sprint, qualifying, grid, penalties</text>
+  <text x="540" y="468" class="mono">f1predict/features/build.py</text>
+
+  <!-- 3 MODELS -->
+  <rect x="24" y="510" width="952" height="198" rx="14" fill="#FFF7ED" stroke="#FED7AA"/>
+  <text x="42" y="534" class="band-label" style="fill:#C2410C">3 · MODELS</text>
+
+  <path d="M600,480 V546" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="48" y="546" width="620" height="148" rx="10" class="box"/>
+  <text x="66" y="572" class="h">Models, one per moment, refit before every race</text>
+  <rect x="66" y="586" width="226" height="26" rx="13" fill="#FFF1F0" stroke="#E10600" stroke-width="1.4"/>
+  <text x="179" y="604" class="chip-sel" text-anchor="middle">conditional logit (selected)</text>
+  <rect x="302" y="586" width="92" height="26" rx="13" fill="#F3F4F6" stroke="#E5E7EB"/>
+  <text x="348" y="604" class="chip" text-anchor="middle">LightGBM</text>
+  <rect x="404" y="586" width="198" height="26" rx="13" fill="#F3F4F6" stroke="#E5E7EB"/>
+  <text x="503" y="604" class="chip" text-anchor="middle">trees on top of the logit</text>
+  <text x="66" y="636">baselines it has to beat: uniform, grid slot, Elo, pace, practice</text>
+  <text x="66" y="656">second stage (pooling, calibration): pass-through in final.json</text>
+  <text x="66" y="682" class="mono">f1predict/models/</text>
+
+  <rect x="700" y="546" width="252" height="148" rx="10" class="box"/>
+  <text x="718" y="573" class="hmono">configs/final.json</text>
+  <text x="718" y="598">the frozen model settings</text>
+  <text x="718" y="618">for each moment,</text>
+  <text x="718" y="638">picked on validation 2014-22</text>
+  <text x="718" y="658">and then left alone</text>
+
+  <path d="M700,620 H668" class="arrow" marker-end="url(#ah)"/>
+
+  <!-- 4a EVALUATE -->
+  <rect x="24" y="724" width="464" height="336" rx="14" fill="#F5F3FF" stroke="#DDD6FE"/>
+  <text x="42" y="748" class="band-label" style="fill:#6D28D9">4a · EVALUATE</text>
+
+  <path d="M256,694 V760" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="48" y="760" width="416" height="106" rx="10" class="box"/>
+  <text x="66" y="786" class="h">Walk-forward backtest</text>
+  <text x="66" y="808">every race 2011-26, each predicted by a</text>
+  <text x="66" y="828">model fit only on the races before it</text>
+  <text x="66" y="852" class="mono" style="fill:#4B5563">f1predict oos → reports/oos/</text>
+
+  <path d="M256,866 V898" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="48" y="898" width="416" height="126" rx="10" class="box"/>
+  <text x="66" y="924" class="h">Evaluation</text>
+  <text x="66" y="946">validation 2014-22, test 2023-25 (scored once),</text>
+  <text x="66" y="966">2026 (new regulations) reported separately</text>
+  <text x="66" y="986">winner log-loss, paired against baselines</text>
+  <text x="66" y="1010" class="mono" style="fill:#4B5563">f1predict evaluate → reports/</text>
+
+  <!-- 4b FORECAST -->
+  <rect x="512" y="724" width="464" height="336" rx="14" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="530" y="748" class="band-label" style="fill:#B91C1C">4b · FORECAST</text>
+
+  <path d="M600,694 V716 H744 V760" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="536" y="760" width="416" height="106" rx="10" class="box"/>
+  <text x="554" y="786" class="h">Forecast</text>
+  <text x="554" y="808">P(win) for every driver, summing to 1,</text>
+  <text x="554" y="828">for every remaining race of the season</text>
+  <text x="554" y="852" class="mono">f1predict/pipeline.py: forecast()</text>
+
+  <path d="M464,813 H536" class="arrow" marker-end="url(#ah)"/>
+  <text x="500" y="802" class="edge" text-anchor="middle">OOS history</text>
+
+  <path d="M635,866 V898" class="arrow" marker-end="url(#ah)"/>
+  <path d="M853,866 V898" class="arrow" marker-end="url(#ah)"/>
+
+  <rect x="536" y="898" width="198" height="126" rx="10" class="box"/>
+  <text x="554" y="924" class="h">CLI</text>
+  <text x="554" y="948" class="mono" style="fill:#4B5563">f1predict predict</text>
+  <text x="554" y="968" class="mono" style="fill:#4B5563">f1predict outlook</text>
+  <text x="554" y="988">writes CSV files</text>
+  <text x="554" y="1010" class="mono">→ predictions/</text>
+
+  <rect x="754" y="898" width="198" height="126" rx="10" class="box"/>
+  <text x="772" y="924" class="h">Dashboard</text>
+  <text x="772" y="948">FastAPI /api</text>
+  <text x="772" y="968">React + Vite UI</text>
+  <text x="772" y="988">what-if scenarios</text>
+  <text x="772" y="1010" class="mono">localhost:8050</text>
+
+  <path d="M464,1000 H500 V1046 H853 V1024" class="arrow" marker-end="url(#ah)"/>
+  <text x="694" y="1039" class="edge" text-anchor="middle">backtest history + metrics</text>
+
+  <text x="28" y="1088" class="foot">f1predict/... paths are modules under src/. data/, reports/ and predictions/ are created locally by the CLI and are not in the repository.</text>
+</svg>
