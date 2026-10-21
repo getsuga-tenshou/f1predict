@@ -234,12 +234,16 @@ penalties and pit-lane starts), or swap drivers between seats. Runs execute in t
 saved to `predictions/runs/`, and any two runs for the same race can be compared driver by driver. Below
 that sits the expected number of wins for each driver over the rest of the season.
 
+![Forecast view: win probabilities for the 2026 United States GP before the weekend, with the run form on the right](assets/Dashboard%20homepage.png)
+
 The History view puts predictions next to the actual winners for every race from 2014 to 2026, for each
 of the three moments. Every one of them is a walk-forward forecast, and the numbers match
 `reports/EVALUATION.md`. It has the probability given to each winner against the simple baseline, a
 calibration chart, a sortable race table, and a drill-down showing how each race's forecast moved
 through the weekend. Forecasts logged before a race (dashboard runs and `f1predict predict` CSVs) are
 scored here once the result is in the data.
+
+![History view: after-qualifying forecasts against the actual winners for every race from 2014 to 2026](assets/Dashboard%20comparison%20page.png)
 
 A hand-set grid has no lap times, so the model sees positions only and its probabilities come out
 flatter than with real qualifying; the run says so. A line-up change replays every race since 1950 for
@@ -262,7 +266,7 @@ src/f1predict/
   cli.py       `f1predict` command
 dashboard/     React + Vite + Tailwind frontend (API contract: src/api/types.ts)
 configs/       final.json (frozen configuration)
-assets/        architecture diagram
+assets/        architecture diagram, dashboard screenshots
 ```
 
 Created locally by the commands above (not in the repository): `.venv/`, `dashboard/node_modules/`,
