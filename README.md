@@ -269,11 +269,6 @@ configs/       final.json (frozen configuration)
 assets/        architecture diagram, dashboard screenshots
 ```
 
-Created locally by the commands above (not in the repository): `.venv/`, `dashboard/node_modules/`,
-`src/f1predict/dashboard/static/` (built frontend), `data/` (F1DB tables), `reports/` (backtest
-predictions, EVALUATION.md, evaluation.json, figures) and `predictions/` (forecasts from the CLI;
-`runs/` holds forecasts run in the dashboard).
-
 ## Limitations
 
 * There is no bookmaker-odds benchmark (no free historical source), and the model knows nothing about
