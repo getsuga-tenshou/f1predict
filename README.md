@@ -3,6 +3,27 @@
 Who wins the next Grand Prix? f1predict gives every driver on the grid a probability of winning, and
 comes with a local web dashboard for exploring the forecasts.
 
+## Current GP prediction
+
+### Mexico City GP, 1 November 2026
+
+Forecast made on 1 November 2026 at 16:46 UTC, after qualifying and before the race.
+The top five drivers by win probability from the `pre_race` model:
+
+| Driver | Team | Starting grid | Win probability |
+|---|---|---:|---:|
+| Lewis Hamilton | Ferrari | 1 | 29.40% |
+| George Russell | Mercedes | 2 | 19.63% |
+| Kimi Antonelli | Mercedes | 4 | 18.75% |
+| Charles Leclerc | Ferrari | 3 | 14.06% |
+| Max Verstappen | Red Bull Racing | 5 | 11.20% |
+
+The forecast uses race history through the United States GP (F1DB `v2026.18.0`), plus Mexico's
+practice and qualifying sessions from OpenF1. It includes the
+[official starting grid](https://www.formula1.com/en/results/2026/races/1298/mexico/starting-grid),
+with Verstappen's penalty and Hirakawa replacing Ocon at Haas. The model assigns probabilities to
+all 22 drivers; only the top five are shown here. Full-field probabilities sum to 100% before rounding.
+
 ## Why I built this
 
 I wanted to get more of an understanding of machine learning, and I love F1, so I thought: what better
