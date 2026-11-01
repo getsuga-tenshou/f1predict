@@ -7,7 +7,7 @@ comes with a local web dashboard for exploring the forecasts.
 
 ### Mexico City GP, 1 November 2026
 
-Forecast made on 1 November 2026 at 16:46 UTC, after qualifying and before the race.
+Forecast made on 1 November 2026 at 10:16 PM IST, after qualifying and before the race.
 The top five drivers by win probability from the `pre_race` model:
 
 | Driver | Team | Starting grid | Win probability |
