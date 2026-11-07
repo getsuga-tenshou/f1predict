@@ -13,7 +13,7 @@ REPORTS_DIR = ROOT / "reports"
 PREDICTIONS_DIR = ROOT / "predictions"
 
 # Pinned data release. Bump after each Grand Prix (`f1predict download --latest`).
-F1DB_VERSION = os.environ.get("F1PREDICT_F1DB_VERSION", "v2026.18.0")
+F1DB_VERSION = os.environ.get("F1PREDICT_F1DB_VERSION", "v2026.19.0")
 
 # Technical-regulation resets, classified by how much the competitive order actually reshuffled
 # (Spearman of constructor qualifying pace, last 6 races of y-1 vs first 6 of y): 2009 -0.10,
