@@ -7,21 +7,22 @@ comes with a local web dashboard for exploring the forecasts.
 
 ### São Paulo GP, 8 November 2026
 
-Forecast made on 8 November 2026 at 3:09 PM IST, after qualifying and before the race.
+Forecast made on 8 November 2026 at 3:27 PM IST, after qualifying and before the race.
 The top five drivers by win probability from the `pre_race` model:
 
 | Driver | Team | Grid | Win probability |
 |---|---|---:|---:|
-| Kimi Antonelli | Mercedes | 3 | 34.32% |
-| Lando Norris | McLaren | 1 | 27.86% |
-| George Russell | Mercedes | 2 | 22.51% |
-| Charles Leclerc | Ferrari | 4 | 6.14% |
-| Max Verstappen | Red Bull Racing | 16 | 3.46% |
+| Kimi Antonelli | Mercedes | 2 | 46.08% |
+| Lando Norris | McLaren | 1 | 29.97% |
+| George Russell | Mercedes | 7 | 12.08% |
+| Charles Leclerc | Ferrari | 14 | 3.03% |
+| Max Verstappen | Red Bull Racing | 21 | 2.97% |
 
 The forecast uses race history through the Mexico City GP (F1DB `v2026.19.0`), plus FP1, FP2, FP3 and
-qualifying at Interlagos from OpenF1. The grid is the qualifying order, with no penalties applied. The
-model assigns probabilities to all 22 drivers; only the top five are shown here. Full-field
-probabilities sum to 100% before rounding.
+qualifying at Interlagos from OpenF1. The grid is the official starting grid with power-unit penalties
+applied: Russell drops five places, Leclerc ten, and Hamilton, Verstappen and Perez start from the back.
+Rafael Câmara replaces Ryo Hirakawa at Haas. The model assigns probabilities to all 22 drivers; only the
+top five are shown here. Full-field probabilities sum to 100% before rounding.
 
 ## Why I built this
 
