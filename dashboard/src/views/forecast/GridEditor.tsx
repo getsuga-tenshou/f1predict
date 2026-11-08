@@ -119,8 +119,12 @@ export function GridEditor({
       </div>
       {live && grid.origin === "manual" ? (
         <p className="m-0 text-[13px] leading-snug text-ink-muted">
-          With OpenF1 on, the model uses this weekend's qualifying and this grid is not sent. Load qualifying into the grid to apply penalties.
+          With OpenF1 on, the model uses this weekend's qualifying and this grid is not sent. Load the official starting grid (or the
+          qualifying order) into the grid to apply penalties.
         </p>
+      ) : null}
+      {grid.startingGrid ? (
+        <p className="m-0 text-[13px] leading-snug text-ink-muted">Official starting grid from OpenF1. Qualified shows where each driver qualified before penalties.</p>
       ) : null}
       <div className={`${COLS} border-b border-hair pb-1 text-xs text-ink-muted`} aria-hidden>
         <span className="text-right">Slot</span>

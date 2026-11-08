@@ -5,7 +5,7 @@ import { Button } from "../../components/Button";
 import { Field, Segmented, Select, Switch } from "../../components/controls";
 import { Badge, InlineError, Skeleton } from "../../components/feedback";
 import { formatDateShort, raceShort } from "../../lib/format";
-import { gridForField, gridFromQuali, gridToSend, initGrid, orderRows, type GridState } from "../../lib/grid";
+import { gridForField, gridFromQuali, gridFromStartingGrid, gridToSend, initGrid, orderRows, reloadOpenF1Grid, type GridState } from "../../lib/grid";
 import { assignSeat, defaultSeats, driverOptions, fieldFromSeats, isLineupChanged, toLineupEntries, type Seats } from "../../lib/lineup";
 import { GridEditor } from "./GridEditor";
 import { LineupEditor } from "./LineupEditor";
@@ -14,7 +14,17 @@ import type { Submission } from "./useRunSubmission";
 
 const LABEL_MAX = 80;
 
-function LiveSessions({ raceId, mode, onLoadQuali }: { raceId: number; mode: Mode; onLoadQuali: (q: NonNullable<LiveWeekend["quali"]>) => void }) {
+function LiveSessions({
+  raceId,
+  mode,
+  onLoadQuali,
+  onLoadStartingGrid,
+}: {
+  raceId: number;
+  mode: Mode;
+  onLoadQuali: (q: NonNullable<LiveWeekend["quali"]>) => void;
+  onLoadStartingGrid: (q: NonNullable<LiveWeekend["quali"]>, g: NonNullable<LiveWeekend["starting_grid"]>) => void;
+}) {
   const [requested, setRequested] = useState(false);
   const url = `/api/live?race_id=${raceId}`;
   const live = useApi<LiveWeekend>(requested ? url : null);
@@ -61,11 +71,28 @@ function LiveSessions({ raceId, mode, onLoadQuali }: { raceId: number; mode: Mod
               </div>
               {data.quali ? (
                 <div className="flex flex-col items-start gap-1.5">
-                  <Button size="sm" onClick={() => data.quali && onLoadQuali(data.quali)}>
-                    Load qualifying into the grid
-                  </Button>
+                  {data.starting_grid ? (
+                    <>
+                      <Button size="sm" onClick={() => data.quali && data.starting_grid && onLoadStartingGrid(data.quali, data.starting_grid)}>
+                        Load official starting grid
+                      </Button>
+                      <p className="m-0 text-[13px] leading-snug text-ink-muted">
+                        The FIA grid, with grid penalties applied. OpenF1 doesn't mark pit-lane starts, so tick those yourself.
+                      </p>
+                    </>
+                  ) : (
+                    // Fallback until the FIA issues the grid: qualifying order, penalties set by hand.
+                    <>
+                      <Button size="sm" onClick={() => data.quali && onLoadQuali(data.quali)}>
+                        Load qualifying order into the grid
+                      </Button>
+                      <p className="m-0 text-[13px] leading-snug text-ink-muted">
+                        The official starting grid isn't out yet, so this uses the qualifying order. Move penalised drivers back by hand.
+                      </p>
+                    </>
+                  )}
                   {mode !== "pre_race" ? (
-                    <p className="m-0 text-[13px] leading-snug text-ink-muted">Qualifying has finished. Loading it switches the moment to after qualifying.</p>
+                    <p className="m-0 text-[13px] leading-snug text-ink-muted">Qualifying has finished. Loading the grid switches the moment to after qualifying.</p>
                   ) : null}
                 </div>
               ) : null}
@@ -221,6 +248,11 @@ export function RunForm({
                 setLive(true);
                 setGrid(gridFromQuali(field, q));
               }}
+              onLoadStartingGrid={(q, g) => {
+                setMode("pre_race");
+                setLive(true);
+                setGrid(gridFromStartingGrid(field, q, g));
+              }}
             />
           ) : null}
         </div>
@@ -236,7 +268,7 @@ export function RunForm({
               onChange={setGrid}
               live={effLive}
               onOrderByForecast={forecastOrder.length ? () => setGrid({ ...gridState, rows: orderRows(gridState.rows, forecastOrder) }) : null}
-              onReset={() => setGrid(gridState.classification ? gridFromQuali(field, gridState.classification) : null)}
+              onReset={() => setGrid(reloadOpenF1Grid(gridState, field))}
             />
           ) : (
             <div aria-hidden className="flex flex-col gap-1.5">

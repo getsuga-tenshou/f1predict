@@ -94,6 +94,11 @@ export interface LiveWeekend {
   sessions: { kind: SessionKind; name: string; ended_at: string }[];
   /** Qualifying classification when GP qualifying has finished, else null. */
   quali: { driver: DriverRef; quali_pos: number | null; gap_pct: number | null }[] | null;
+  /**
+   * Official starting grid (grid penalties applied) once the FIA has issued it, else null.
+   * Car numbers F1DB doesn't know yet are left out. OpenF1 doesn't flag pit-lane starts.
+   */
+  starting_grid: { driver_id: string; grid_pos: number }[] | null;
 }
 
 /* ------------------------------------------------------------------ POST /api/runs */

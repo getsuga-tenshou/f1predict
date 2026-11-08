@@ -3,10 +3,12 @@ import {
   effectiveQuali,
   gridForField,
   gridFromQuali,
+  gridFromStartingGrid,
   gridToSend,
   initGrid,
   isEditedAfterLoad,
   moveRow,
+  reloadOpenF1Grid,
   syncGridWithField,
   toGridEntries,
   updateRow,
@@ -146,5 +148,52 @@ describe("syncGridWithField", () => {
     const rows = initGrid(field).rows;
     const next = syncGridWithField(rows, [...field, d("col")]);
     expect(next.map((r) => r.driver_id)).toEqual(["ver", "ham", "lec", "nor", "col"]);
+  });
+});
+
+describe("gridFromStartingGrid", () => {
+  const field5 = ["nor", "ant", "rus", "lec", "cam"].map(d);
+  const quali = [
+    { driver: ref("nor"), quali_pos: 1, gap_pct: 0 },
+    { driver: ref("rus"), quali_pos: 2, gap_pct: 0.1 },
+    { driver: ref("ant"), quali_pos: 3, gap_pct: 0.2 },
+    { driver: ref("lec"), quali_pos: 4, gap_pct: 0.3 },
+  ];
+  // Russell and Leclerc dropped by penalties; "cam" is a debutant OpenF1 couldn't map (slot 3 empty).
+  const official = [
+    { driver_id: "nor", grid_pos: 1 },
+    { driver_id: "ant", grid_pos: 2 },
+    { driver_id: "rus", grid_pos: 4 },
+    { driver_id: "lec", grid_pos: 5 },
+  ];
+
+  it("orders by the official grid, keeps qualifying positions, and fills empty slots", () => {
+    const g = gridFromStartingGrid(field5, quali, official);
+    expect(g.rows.map((r) => [r.driver_id, r.quali])).toEqual([
+      ["nor", 1],
+      ["ant", 3],
+      ["cam", null],
+      ["rus", 2],
+      ["lec", 4],
+    ]);
+    expect(g.origin).toBe("openf1");
+  });
+
+  it("is sent with OpenF1 on, so the server applies the penalties", () => {
+    const sent = gridToSend(gridFromStartingGrid(field5, quali, official), true);
+    expect(sent?.find((e) => e.driver_id === "rus")).toEqual({ driver_id: "rus", quali_pos: 2, grid_pos: 4, pit_lane_start: false });
+  });
+
+  it("closes gaps at the back when the official grid lists more cars than the field", () => {
+    const g = gridFromStartingGrid(["nor", "lec"].map(d), quali, official);
+    expect(g.rows.map((r) => r.driver_id)).toEqual(["nor", "lec"]);
+  });
+
+  it("reset and line-up changes rebuild from the official grid", () => {
+    const g = gridFromStartingGrid(field5, quali, official);
+    const moved = { ...g, rows: moveRow(g.rows, 0, 1) };
+    expect(reloadOpenF1Grid(moved, field5)?.rows.map((r) => r.driver_id)).toEqual(["nor", "ant", "cam", "rus", "lec"]);
+    const swapped = gridForField(g, ["nor", "ant", "rus", "lec", "hir"].map(d));
+    expect(swapped.rows.map((r) => r.driver_id)).toEqual(["nor", "ant", "hir", "rus", "lec"]);
   });
 });

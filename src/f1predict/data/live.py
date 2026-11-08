@@ -93,8 +93,15 @@ def fetch_weekend(data: F1Data, race_id: int, snapshot_dir: Path | None = None) 
         res["constructor_id"] = [c or known_team.get(team_of_number.get(n)) for n, c in zip(res["driver_number"], res["constructor_id"])]
         res["race_id"] = race_id
         out["practice" if kind.startswith("fp") else {"q": "quali", "sq": "sprint_q", "sprint": "sprint"}[kind]].append((kind, res))
+        if kind == "q":
+            raw_grid = _get("starting_grid", session_key=s["session_key"])
+            if raw_grid:
+                pd.DataFrame(raw_grid).to_json(snapshot_dir / "starting_grid.json", orient="records")
+            out["starting_grid"] = starting_grid_rows(raw_grid, numbers, race_id)
 
     tables: dict[str, pd.DataFrame] = {}
+    if out.get("starting_grid") is not None and len(out["starting_grid"]):
+        tables["starting_grid"] = out["starting_grid"]
     if out["practice"]:
         rows = []
         for kind, res in out["practice"]:
@@ -138,6 +145,20 @@ def fetch_weekend(data: F1Data, race_id: int, snapshot_dir: Path | None = None) 
             }
         ).reset_index(drop=True)  # fmt: skip
     return tables
+
+
+def starting_grid_rows(raw: list[dict], numbers: dict[int, tuple[str, str]], race_id: int) -> pd.DataFrame:
+    """OpenF1's official starting grid (penalties applied) as race_id, driver_id, grid_pos.
+
+    OpenF1 publishes it under the qualifying session once the FIA issues the grid. Car numbers F1DB
+    doesn't know yet (a debutant) are dropped; the caller decides who takes the empty slot."""
+    cols = ["race_id", "driver_id", "grid_pos"]
+    rows = [
+        (race_id, numbers[int(r["driver_number"])][0], int(r["position"]))
+        for r in raw
+        if r.get("position") is not None and r.get("driver_number") is not None and int(r["driver_number"]) in numbers
+    ]
+    return pd.DataFrame(rows, columns=cols).sort_values("grid_pos").drop_duplicates("driver_id").reset_index(drop=True)
 
 
 def grid_from_quali(quali: pd.DataFrame, overrides: pd.DataFrame | None = None) -> pd.DataFrame:

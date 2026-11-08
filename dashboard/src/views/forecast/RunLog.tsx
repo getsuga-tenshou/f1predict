@@ -166,7 +166,7 @@ export function RunLog({
                       <RunStatusCell run={r} />
                     </td>
                     <td className="py-1.5 text-right" onClick={(e) => e.stopPropagation()}>
-                      {r.source === "dashboard" && !isActiveStatus(r.status) ? (
+                      {!isActiveStatus(r.status) ? (
                         confirming === r.id ? (
                           <span className="inline-flex items-center gap-1">
                             <IconButton

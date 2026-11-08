@@ -24,7 +24,12 @@ export interface GridState {
   loaded: GridRow[] | null;
   /** OpenF1's qualifying classification the grid was built from (origin "openf1"). */
   classification?: NonNullable<LiveWeekend["quali"]>;
+  /** OpenF1's official starting grid, when the grid was built from it rather than qualifying order. */
+  startingGrid?: NonNullable<LiveWeekend["starting_grid"]>;
 }
+
+type Classification = NonNullable<LiveWeekend["quali"]>;
+type StartingGrid = NonNullable<LiveWeekend["starting_grid"]>;
 
 /** Rows ordered by `order` (driver ids) first, then any remaining drivers in field order. */
 export function orderRows<T extends { driver_id: string }>(rows: T[], order: string[]): T[] {
@@ -64,12 +69,48 @@ export function gridFromQuali(field: GridDriver[], quali: NonNullable<LiveWeeken
 }
 
 /**
- * The grid for a changed field (line-up edits). An OpenF1 grid is rebuilt from the classification,
- * so a substitute who qualified takes his own slot instead of inheriting a seat at the back, and
- * the rebuilt grid counts as unedited (nothing is sent as a penalty). A manual grid keeps its order.
+ * Grid built from OpenF1's official starting grid, so penalties are already applied. Each row keeps
+ * its qualifying position, which lets the server count the places a driver dropped. Field drivers
+ * the official grid doesn't list (a debutant F1DB doesn't know yet) fill its empty slots in
+ * qualifying order, so everyone behind them keeps their real slot.
+ */
+export function gridFromStartingGrid(field: GridDriver[], quali: Classification, startingGrid: StartingGrid): GridState {
+  const qpos = new Map(quali.map((q) => [q.driver.driver_id, q.quali_pos]));
+  const slot = new Map(startingGrid.map((s) => [s.driver_id, s.grid_pos]));
+  const placed = field.filter((d) => slot.has(d.driver_id)).sort((a, b) => slot.get(a.driver_id)! - slot.get(b.driver_id)!);
+  const rest = gridFromQuali(
+    field.filter((d) => !slot.has(d.driver_id)),
+    quali,
+  ).rows.map((r) => r.driver_id);
+  const byId = new Map(field.map((d) => [d.driver_id, d]));
+  const taken = new Set(placed.map((d) => slot.get(d.driver_id)!));
+  const ordered: GridDriver[] = [];
+  let p = 0;
+  let r = 0;
+  for (let pos = 1; ordered.length < field.length; pos++) {
+    if (taken.has(pos) || r >= rest.length) ordered.push(placed[p++]);
+    else ordered.push(byId.get(rest[r++])!);
+  }
+  const rows: GridRow[] = ordered.map((d) => ({ ...d, quali: qpos.get(d.driver_id) ?? null, pitLane: false }));
+  return { rows, origin: "openf1", loaded: rows.map((x) => ({ ...x })), classification: quali, startingGrid };
+}
+
+/** Rebuild an OpenF1 grid from what it was loaded from (official grid, else qualifying order). */
+export function reloadOpenF1Grid(state: GridState, field: GridDriver[]): GridState | null {
+  if (!state.classification) return null;
+  return state.startingGrid ? gridFromStartingGrid(field, state.classification, state.startingGrid) : gridFromQuali(field, state.classification);
+}
+
+/**
+ * The grid for a changed field (line-up edits). An OpenF1 grid is rebuilt from what it was loaded
+ * from, so a substitute who qualified takes his own slot instead of inheriting a seat at the back.
+ * A manual grid keeps its order.
  */
 export function gridForField(state: GridState, field: GridDriver[]): GridState {
-  if (state.origin === "openf1" && state.classification) return gridFromQuali(field, state.classification);
+  if (state.origin === "openf1") {
+    const rebuilt = reloadOpenF1Grid(state, field);
+    if (rebuilt) return rebuilt;
+  }
   return { ...state, rows: syncGridWithField(state.rows, field) };
 }
 
@@ -117,12 +158,13 @@ export function isEditedAfterLoad(state: GridState): boolean {
 
 /**
  * The `grid` field of a run request.
- * Live off: always the manual scenario. Live on: only an OpenF1 grid that was edited afterwards.
+ * Live off: always the manual scenario. Live on: the official starting grid (it carries the
+ * penalties), or a qualifying-order grid that was edited afterwards.
  */
 export function gridToSend(state: GridState | null, live: boolean): GridEntry[] | undefined {
   if (!state || state.rows.length === 0) return undefined;
   if (!live) return toGridEntries(state.rows);
-  return isEditedAfterLoad(state) ? toGridEntries(state.rows) : undefined;
+  return state.startingGrid || isEditedAfterLoad(state) ? toGridEntries(state.rows) : undefined;
 }
 
 /**

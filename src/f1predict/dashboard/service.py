@@ -327,7 +327,7 @@ class Service:
             hit = self._cache.get(key)
             if hit and (datetime.now(timezone.utc) - hit[0]).total_seconds() < 60:
                 return hit[1]
-            out = {"race": self.race_ref(race_id), "reachable": True, "error": None, "sessions": [], "quali": None}
+            out = {"race": self.race_ref(race_id), "reachable": True, "error": None, "sessions": [], "quali": None, "starting_grid": None}
             try:
                 sessions = L._sessions_for(race)
                 tables = L.fetch_weekend(self.data, race_id) if sessions else {}
@@ -350,6 +350,10 @@ class Service:
                             "gap_pct": _num(r.quali_gap_pct),
                         }
                         for r in q.itertuples()
+                    ]
+                if "starting_grid" in tables:
+                    out["starting_grid"] = [
+                        {"driver_id": r.driver_id, "grid_pos": _int(r.grid_pos)} for r in tables["starting_grid"].itertuples()
                     ]
             self._cache[key] = (datetime.now(timezone.utc), out)
             return out
@@ -815,8 +819,15 @@ class Service:
         return self._present(run, full=True)
 
     def delete_run(self, run_id: str) -> None:
-        if not RUN_ID.match(run_id) or run_id.startswith("cli-"):
-            raise RequestError("only runs made in the dashboard can be deleted")
+        if not RUN_ID.match(run_id):
+            raise NotFound(f"no run {run_id}")
+        if run_id.startswith("cli-"):
+            # Match against the files that exist rather than building a path from the id.
+            path = next((p for p in self.predictions_dir.glob("*.csv") if CLI_FILE.match(p.name) and f"cli-{p.stem}" == run_id), None)
+            if path is None:
+                raise NotFound(f"no run {run_id}")
+            path.unlink(missing_ok=True)
+            return
         with self._runs_lock:
             run = self._runs.get(run_id)
             if run is None:
